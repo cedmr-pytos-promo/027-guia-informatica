@@ -1,0 +1,343 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Guía de Proyectos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: cabecera compacta con selector de tipo de proyecto, barra de fases fija,
+   una sección por fase (qué es, pasos, ejemplo, checklist, errores) y tabla resumen final. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --ink:#12203A; --muted:#55627A; --line:#D6DCE6;
+  --accent:#2347D9; --accent-ink:#FFFFFF; --accent-soft:#E3E9FC;
+  --warn:#B4430A; --warn-soft:#FCE9DC; --ok:#17713F; --ok-soft:#DDF3E5;
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'Public Sans','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1424; --surface:#161E33; --ink:#E7ECF7; --muted:#9AA7C2; --line:#27324D;
+    --accent:#7C97FF; --accent-ink:#0E1424; --accent-soft:#1E2A52;
+    --warn:#FFA06B; --warn-soft:#3A2418; --ok:#6FD39A; --ok-soft:#173326; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1424; --surface:#161E33; --ink:#E7ECF7; --muted:#9AA7C2; --line:#27324D;
+  --accent:#7C97FF; --accent-ink:#0E1424; --accent-soft:#1E2A52;
+  --warn:#FFA06B; --warn-soft:#3A2418; --ok:#6FD39A; --ok-soft:#173326; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.6;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 64px;
+}
+body::before{content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:30; background:var(--bg)}
+.wrap{max-width:860px; margin:0 auto}
+h1,h2,h3{font-family:var(--f-display); text-wrap:balance; line-height:1.12; margin:0}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+/* Cabecera */
+.hero{padding-block:40px 28px; display:grid; gap:20px}
+.eyebrow{font-family:var(--f-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+h1{font-size:clamp(2.2rem,7vw,3.6rem); font-weight:800; letter-spacing:-.02em}
+.lead{font-size:1.125rem; color:var(--muted); max-width:62ch}
+.picker{display:grid; gap:8px}
+.picker legend,.picker .lbl{font-family:var(--f-mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:0}
+fieldset{border:0; padding:0; margin:0; min-width:0}
+.seg{display:flex; flex-wrap:wrap; gap:8px}
+.seg input{position:absolute; opacity:0; pointer-events:none}
+.seg label{border:1.5px solid var(--line); background:var(--surface); padding:8px 16px; border-radius:999px; cursor:pointer; font-weight:500; font-size:15px}
+.seg input:checked + label{background:var(--accent); color:var(--accent-ink); border-color:var(--accent)}
+.seg input:focus-visible + label{outline:3px solid var(--accent); outline-offset:2px}
+
+/* Ciclo de vida */
+.stages{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin-top:8px; border:1.5px solid var(--ink); border-radius:6px; overflow:hidden; background:var(--surface)}
+.stage{padding:12px 14px; border-right:1.5px solid var(--ink); min-width:0}
+.stage:last-child{border-right:0}
+.stage b{display:block; font-family:var(--f-display); font-size:1rem}
+.stage span{font-family:var(--f-mono); font-size:12px; color:var(--muted)}
+@media (max-width:620px){
+  .stages{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stage:nth-child(2){border-right:0}
+  .stage:nth-child(-n+2){border-bottom:1.5px solid var(--ink)}
+}
+
+/* Progreso y navegación */
+.bar{position:sticky; top:env(safe-area-inset-top, 0px); z-index:20; background:var(--bg); border-bottom:1px solid var(--line); padding-block:10px}
+.bar-top{display:flex; align-items:center; gap:12px; margin-bottom:8px}
+.track{flex:1; height:8px; background:var(--line); border-radius:99px; overflow:hidden}
+.fill{height:100%; width:0; background:var(--accent); transition:width .3s}
+.pct{font-family:var(--f-mono); font-size:13px; min-width:5ch; text-align:right; font-variant-numeric:tabular-nums}
+.chips{display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin}
+.chips a{flex:none; text-decoration:none; color:var(--ink); border:1px solid var(--line); background:var(--surface); border-radius:6px; padding:4px 10px; font-size:13px; font-weight:500; white-space:nowrap}
+.chips a b{font-family:var(--f-mono); color:var(--accent); margin-right:6px; font-weight:500}
+.chips a.on{border-color:var(--accent); background:var(--accent-soft)}
+
+/* Fases */
+.fase{padding-block:48px 8px; scroll-margin-top:110px; display:grid; gap:20px}
+.fase-head{display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 16px; align-items:start}
+.num{font-family:var(--f-display); font-weight:800; font-size:3.4rem; line-height:.9; color:var(--accent); font-variant-numeric:tabular-nums}
+.etapa{font-family:var(--f-mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.fase h2{font-size:clamp(1.6rem,4.5vw,2.1rem); font-weight:700}
+.resumen{grid-column:1 / -1; font-size:1.06rem; max-width:64ch}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:18px 20px; display:grid; gap:12px; min-width:0}
+.card h3{font-size:1.05rem; font-weight:700}
+.pasos{margin:0; padding-left:1.3em; display:grid; gap:10px}
+.pasos li::marker{font-family:var(--f-mono); color:var(--accent); font-weight:500}
+.pasos strong{font-weight:600}
+.ejemplo{border-left:4px solid var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; padding:14px 18px; display:grid; gap:4px}
+.ejemplo .tag{font-family:var(--f-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent)}
+.entrega{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; font-size:15px}
+.entrega .tag{font-family:var(--f-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; background:var(--ok-soft); color:var(--ok); padding:2px 8px; border-radius:4px}
+.dos{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px}
+@media (max-width:640px){.dos{grid-template-columns:1fr}}
+.checks{list-style:none; margin:0; padding:0; display:grid; gap:2px}
+.checks label{display:grid; grid-template-columns:22px minmax(0,1fr); gap:10px; align-items:start; padding:6px 0; cursor:pointer; font-size:15px}
+.checks input{width:18px; height:18px; margin:3px 0 0; accent-color:var(--accent)}
+.checks input:checked + span{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--line)}
+.errores{list-style:none; margin:0; padding:0; display:grid; gap:10px}
+.errores li{background:var(--warn-soft); color:var(--ink); border-radius:6px; padding:8px 12px; font-size:15px; border-left:4px solid var(--warn)}
+.card.err h3{color:var(--warn)}
+
+/* Calculadora de riesgo */
+.riesgo{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; gap:12px; align-items:end}
+@media (max-width:640px){.riesgo{grid-template-columns:1fr 1fr}.riesgo .res{grid-column:1 / -1}}
+.riesgo label{display:grid; gap:4px; font-size:13px; font-family:var(--f-mono); color:var(--muted)}
+select{font:inherit; font-size:15px; padding:8px 10px; border:1.5px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink)}
+.res{padding:9px 16px; border-radius:6px; font-weight:600; text-align:center; min-width:11ch}
+.res.bajo{background:var(--ok-soft); color:var(--ok)}
+.res.medio{background:#FFF1C2; color:#6B4E00}
+.res.alto{background:var(--warn-soft); color:var(--warn)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .res.medio{background:#3A3010; color:#F2D675}}
+:root[data-theme="dark"] .res.medio{background:#3A3010; color:#F2D675}
+
+/* Resumen */
+.final{padding-block:56px 0; display:grid; gap:16px}
+.final h2{font-size:clamp(1.6rem,4.5vw,2.1rem)}
+.scroll{overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:14.5px}
+th,td{text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:var(--f-mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:500}
+tr:last-child td{border-bottom:0}
+td:first-child{font-family:var(--f-mono); color:var(--accent); white-space:nowrap}
+.reset{justify-self:start; font:inherit; font-size:14px; background:transparent; color:var(--ink); border:1.5px solid var(--line); border-radius:6px; padding:8px 14px; cursor:pointer}
+.reset:hover{border-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.fill{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Guía práctica · 11 fases · de la idea al cierre</div>
+    <h1>Cómo hacer un proyecto, paso a paso</h1>
+    <p class="lead">Sirve para un proyecto institucional, un negocio o una iniciativa comunitaria. Cada fase explica qué es, cómo hacerla, qué entregar y qué errores evitar. Marca los pasos que vayas completando.</p>
+    <fieldset class="picker">
+      <legend>Ver ejemplos de tipo</legend>
+      <div class="seg" id="tipos">
+        <input type="radio" name="tipo" id="t-inst" value="inst" checked><label for="t-inst">Institucional</label>
+        <input type="radio" name="tipo" id="t-neg" value="neg"><label for="t-neg">Negocio</label>
+        <input type="radio" name="tipo" id="t-soc" value="soc"><label for="t-soc">Social o comunitario</label>
+      </div>
+    </fieldset>
+    <div class="stages" aria-label="Etapas del ciclo de vida">
+      <div class="stage"><b>Inicio</b><span>fases 1–4</span></div>
+      <div class="stage"><b>Planificación</b><span>fases 5–8</span></div>
+      <div class="stage"><b>Ejecución y control</b><span>fases 9–10</span></div>
+      <div class="stage"><b>Cierre</b><span>fase 11</span></div>
+    </div>
+  </header>
+</div>
+
+<div class="bar">
+  <div class="wrap">
+    <div class="bar-top">
+      <span class="eyebrow">Tu avance</span>
+      <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pb"><div class="fill" id="fill"></div></div>
+      <span class="pct" id="pct">0%</span>
+    </div>
+    <nav class="chips" id="chips" aria-label="Fases"></nav>
+  </div>
+</div>
+
+<main class="wrap" id="fases"></main>
+
+<section class="wrap final" id="resumen">
+  <h2>Resumen: qué entregar en cada fase</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Fase</th><th>Nombre</th><th>Entregable principal</th></tr></thead>
+      <tbody id="tabla"></tbody>
+    </table>
+  </div>
+  <button class="reset" id="reset" type="button">Borrar mis marcas</button>
+</section>
+
+<script>
+var FASES = [
+{id:'idea',n:'Idea y diagnóstico',etapa:'Inicio',
+ resumen:'Todo proyecto nace de un problema por resolver o una oportunidad por aprovechar. Esta fase sirve para entenderlo con datos antes de proponer cualquier solución.',
+ pasos:['<strong>Describe el problema en una frase.</strong> Si necesitas dos párrafos, todavía no lo entiendes bien.','<strong>Reúne evidencia:</strong> estadísticas, encuestas, entrevistas, registros propios, observación directa.','<strong>Identifica a quién afecta</strong> y cómo, con números aproximados.','<strong>Compara alternativas,</strong> incluida la de no hacer nada, y anota qué pasaría en cada caso.','<strong>Decide si vale la pena</strong> seguir: ¿hay recursos, interés y capacidad reales?'],
+ entrega:'Nota de una página con problema, evidencia, afectados y alternativas.',
+ errores:['Enamorarse de la solución antes de entender el problema.','No hablar con las personas afectadas y suponer lo que necesitan.'],
+ check:['Escribí el problema en una sola frase','Reuní al menos tres fuentes de evidencia','Hablé con personas afectadas','Comparé alternativas, incluida no hacer nada'],
+ ej:{inst:'Una municipalidad nota que el 40% de las consultas en el centro de salud son por enfermedades prevenibles. Problema: baja cultura de prevención en barrios periféricos.',neg:'Una panadería recibe muchos pedidos por mensaje y pierde ventas por demoras en responder. Oportunidad: tomar pedidos en línea.',soc:'Vecinos de un barrio observan que los niños no tienen un lugar seguro donde jugar. Reúnen testimonios y fotos de las calles actuales.'}},
+{id:'objetivos',n:'Objetivos y metas',etapa:'Inicio',
+ resumen:'Los objetivos dicen qué cambio quieres lograr. Sin ellos no hay forma de saber si el proyecto salió bien.',
+ pasos:['<strong>Define un objetivo general:</strong> el cambio principal que buscas.','<strong>Baja a 2 o 4 objetivos específicos,</strong> cada uno medible y con un verbo en infinitivo (aumentar, reducir, capacitar, instalar).','<strong>Hazlos SMART:</strong> específicos, medibles, alcanzables, relevantes y con fecha.','<strong>Asigna un indicador y una meta</strong> a cada objetivo, con su línea de base actual.','<strong>Distingue resultados de actividades.</strong> Dar 10 talleres es una actividad; que 200 personas apliquen lo aprendido es un resultado.'],
+ entrega:'Matriz de objetivos con indicador, línea de base, meta y fecha.',
+ errores:['Objetivos vagos como «mejorar la situación».','Confundir actividades con resultados.'],
+ check:['Tengo un objetivo general claro','Cada objetivo específico es medible','Cada objetivo tiene indicador, línea de base y fecha','Revisé que sean alcanzables con los recursos disponibles'],
+ ej:{inst:'Aumentar del 35% al 60% la asistencia a controles preventivos en 4 barrios antes de diciembre de 2027.',neg:'Alcanzar 150 pedidos en línea por mes en los primeros 6 meses, con un tiempo de respuesta menor a 10 minutos.',soc:'Construir una plaza con juegos para 120 niños del barrio y formar un comité vecinal de mantenimiento en 9 meses.'}},
+{id:'alcance',n:'Alcance',etapa:'Inicio',
+ resumen:'El alcance fija qué incluye el proyecto y qué no. Es la mejor defensa contra el crecimiento descontrolado de tareas.',
+ pasos:['<strong>Lista los entregables:</strong> los productos o servicios concretos que quedarán al final.','<strong>Escribe lo que queda fuera.</strong> Una lista de exclusiones evita malentendidos más adelante.','<strong>Anota supuestos:</strong> cosas que das por ciertas, como que habrá permisos o que el proveedor entregará a tiempo.','<strong>Anota restricciones:</strong> límites de presupuesto, plazo, normas legales o disponibilidad de personas.','<strong>Define criterios de aceptación:</strong> cómo se comprobará que cada entregable está bien terminado.'],
+ entrega:'Declaración de alcance con entregables, exclusiones, supuestos y criterios de aceptación.',
+ errores:['No decir qué queda fuera y descubrirlo en plena ejecución.','Aceptar pedidos nuevos sin evaluar su costo y su tiempo.'],
+ check:['Listé todos los entregables','Escribí qué queda fuera del proyecto','Anoté supuestos y restricciones','Definí criterios de aceptación por entregable'],
+ ej:{inst:'Incluye: 12 jornadas de salud y 4 campañas de comunicación. Excluye: compra de equipamiento médico y obras de infraestructura.',neg:'Incluye: sitio de pedidos, pago con tarjeta y panel de seguimiento. Excluye: servicio de entrega propio, que se tercerizará.',soc:'Incluye: diseño, construcción de la plaza y capacitación del comité. Excluye: iluminación pública, a cargo del municipio.'}},
+{id:'interesados',n:'Interesados',etapa:'Inicio',
+ resumen:'Los interesados son las personas y grupos que influyen en el proyecto o son afectados por él. Ignorarlos es una de las causas más comunes de fracaso.',
+ pasos:['<strong>Haz una lista completa:</strong> quien decide, quien financia, quien ejecuta, quien se beneficia y quien podría oponerse.','<strong>Clasifícalos por poder e interés</strong> en una tabla de cuatro cuadrantes.','<strong>Define la estrategia para cada cuadrante:</strong> gestionar de cerca, mantener satisfechos, mantener informados o monitorear.','<strong>Identifica al patrocinador:</strong> la persona con autoridad para aprobar recursos y resolver bloqueos.','<strong>Conversa temprano</strong> con los más influyentes y anota sus expectativas.'],
+ entrega:'Mapa de interesados con nivel de poder, interés y estrategia de relación.',
+ errores:['Descubrir a un interesado clave cuando el proyecto ya está avanzado.','No tener un patrocinador con autoridad real.'],
+ check:['Listé todos los interesados','Los clasifiqué por poder e interés','Identifiqué al patrocinador','Hablé con los interesados de alto poder'],
+ ej:{inst:'Alto poder y alto interés: Secretaría de Salud y la intendencia. Alto interés y bajo poder: comisiones vecinales y comités de salud.',neg:'Alto poder: socios, banco y proveedor de pagos. Alto interés: clientes frecuentes y repartidores.',soc:'Alto poder: la municipalidad, dueña del terreno. Alto interés: familias del barrio, escuela cercana y comerciantes.'}},
+{id:'cronograma',n:'Plan de trabajo y cronograma',etapa:'Planificación',
+ resumen:'Aquí conviertes los objetivos en trabajo concreto: qué tareas, en qué orden, quién las hace y cuánto tardan.',
+ pasos:['<strong>Descompón el trabajo</strong> en paquetes pequeños, de entre 1 y 10 días cada uno (lo que se llama estructura de desglose del trabajo).','<strong>Estima la duración</strong> de cada paquete con quien lo va a hacer, no solo desde el escritorio.','<strong>Marca las dependencias:</strong> qué tarea no puede empezar hasta que termine otra.','<strong>Identifica la ruta crítica:</strong> la cadena de tareas que determina la fecha final. Un retraso ahí retrasa todo.','<strong>Define hitos:</strong> momentos de revisión, como «diseño aprobado» o «primera entrega».','<strong>Agrega un margen</strong> de tiempo para imprevistos, normalmente entre 10% y 20%.'],
+ entrega:'Cronograma (diagrama de Gantt o tabla) con tareas, responsables, fechas e hitos.',
+ errores:['Planificar sin margen, como si nada pudiera fallar.','Tareas tan grandes que no se puede medir su avance.'],
+ check:['Descompuse el trabajo en paquetes pequeños','Estimé duraciones con quienes ejecutan','Marqué dependencias y ruta crítica','Definí hitos de revisión','Agregué un margen de tiempo'],
+ ej:{inst:'Hito 1 (mes 2): línea de base de salud lista. Hito 2 (mes 6): mitad de las jornadas realizadas. Hito 3 (mes 12): evaluación final.',neg:'Semanas 1–3 diseño, 4–8 desarrollo, 9–10 pruebas con 20 clientes, semana 11 lanzamiento. Ruta crítica: integración de pagos.',soc:'Mes 1 permisos, meses 2–3 diseño participativo, meses 4–7 obra, mes 8 inauguración, mes 9 capacitación del comité.'}},
+{id:'presupuesto',n:'Presupuesto',etapa:'Planificación',
+ resumen:'El presupuesto traduce el plan en dinero. También muestra de dónde saldrá y cuándo se necesitará.',
+ pasos:['<strong>Lista todos los recursos</strong> de cada tarea: personas, materiales, equipos, servicios, traslados.','<strong>Separa costos directos</strong> (ligados a una tarea) <strong>de indirectos</strong> (administración, servicios generales).','<strong>Cotiza con al menos dos proveedores</strong> para los gastos grandes.','<strong>Incluye una reserva para imprevistos,</strong> habitualmente entre 5% y 15% del total.','<strong>Define las fuentes de financiamiento:</strong> fondos propios, aportes, donaciones, crédito o subsidios.','<strong>Arma el flujo de caja por mes</strong> para saber cuándo hará falta cada pago.'],
+ entrega:'Presupuesto detallado por rubro y flujo de caja mensual.',
+ errores:['Olvidar costos indirectos y el tiempo del propio equipo.','Pedir todo el dinero al inicio sin ver cuándo se gasta.'],
+ check:['Listé todos los recursos necesarios','Separé costos directos e indirectos','Cotice con más de un proveedor','Incluí reserva para imprevistos','Armé el flujo de caja mensual'],
+ ej:{inst:'Personal técnico 55%, materiales de campaña 20%, logística 15%, reserva 10%. Financiamiento: presupuesto municipal y un aporte de cooperación.',neg:'Inversión inicial: desarrollo, equipos y marketing. Punto de equilibrio estimado en el mes 8 con 150 pedidos mensuales.',soc:'Materiales y mano de obra especializada se cubren con fondos de donantes. La mano de obra vecinal se registra como aporte en especie.'}},
+{id:'riesgos',n:'Riesgos',etapa:'Planificación',
+ resumen:'Un riesgo es algo que podría pasar y afectar el proyecto. Se trabaja antes de que ocurra, no después.',
+ pasos:['<strong>Haz una lluvia de ideas</strong> con el equipo: qué podría salir mal en tiempo, costo, calidad, personas y entorno.','<strong>Evalúa cada riesgo</strong> por probabilidad e impacto (baja, media, alta).','<strong>Elige una respuesta:</strong> evitar, reducir, transferir (por ejemplo con un seguro) o aceptar.','<strong>Asigna un responsable</strong> y una señal de alerta a cada riesgo importante.','<strong>Revísalos cada mes.</strong> Aparecen riesgos nuevos y otros dejan de existir.'],
+ entrega:'Registro de riesgos con probabilidad, impacto, respuesta y responsable.',
+ errores:['Hacer la lista una sola vez y no volver a mirarla.','Listar riesgos sin plan de respuesta ni responsable.'],
+ check:['Hice lluvia de ideas de riesgos con el equipo','Evalué probabilidad e impacto','Definí una respuesta para los riesgos altos','Asigné responsable a cada riesgo importante'],
+ ej:{inst:'Riesgo: cambio de autoridades a mitad del proyecto. Respuesta: firmar convenio de continuidad y presentar avances a ambos equipos.',neg:'Riesgo: el proveedor de pagos falla en el lanzamiento. Respuesta: contratar un proveedor alterno y probar antes con pedidos reales.',soc:'Riesgo: lluvias retrasan la obra. Respuesta: programar las tareas de exterior en la estación seca y dejar margen en el cronograma.'},
+ extra:'riesgo'},
+{id:'equipo',n:'Equipo y comunicación',etapa:'Planificación',
+ resumen:'Un buen plan falla si nadie sabe qué le toca hacer o cómo se informan las decisiones.',
+ pasos:['<strong>Define roles y responsabilidades.</strong> Una tabla simple de quién ejecuta, quién responde, quién aprueba y a quién se consulta (llamada RACI) evita dudas.','<strong>Nombra a un responsable del proyecto</strong> con tiempo real asignado.','<strong>Fija el ritmo de reuniones:</strong> una breve semanal de seguimiento y una de revisión mensual con el patrocinador.','<strong>Define canales:</strong> dónde se guardan documentos, dónde se discuten temas urgentes, cómo se comunican cambios.','<strong>Planifica los informes:</strong> a quién, con qué frecuencia y con qué contenido.'],
+ entrega:'Tabla de roles y plan de comunicación (quién, qué, cuándo y por qué medio).',
+ errores:['Responsabilidades compartidas que en la práctica no son de nadie.','Reuniones largas sin agenda ni acuerdos anotados.'],
+ check:['Definí roles con una tabla de responsabilidades','Nombré un responsable con tiempo asignado','Fijé reuniones de seguimiento','Definí canales y frecuencia de informes'],
+ ej:{inst:'Comité técnico quincenal, informe trimestral a la autoridad y un tablero público con avances para la ciudadanía.',neg:'Reunión diaria de 15 minutos durante el desarrollo, revisión semanal con socios y un tablero de tareas compartido.',soc:'Asamblea mensual de vecinos, grupo de mensajería para avisos y un cartel en la escuela con el avance de la obra.'}},
+{id:'ejecucion',n:'Ejecución',etapa:'Ejecución y control',
+ resumen:'Es el momento de hacer el trabajo planificado, cuidando al equipo y registrando lo que se decide.',
+ pasos:['<strong>Haz una reunión de arranque</strong> con todos: objetivos, roles, cronograma y reglas de trabajo.','<strong>Ejecuta por paquetes de trabajo</strong> y cierra cada uno con un entregable verificable.','<strong>Registra las decisiones</strong> importantes con fecha y responsable.','<strong>Gestiona los cambios por escrito:</strong> si algo modifica alcance, costo o plazo, se evalúa y se aprueba antes de hacerlo.','<strong>Cuida al equipo:</strong> remueve obstáculos, reconoce logros y resuelve conflictos temprano.'],
+ entrega:'Entregables parciales aprobados y registro de decisiones y cambios.',
+ errores:['Aceptar cambios de palabra sin medir su efecto.','Dejar que los problemas se acumulen hasta la reunión mensual.'],
+ check:['Hice la reunión de arranque','Cada paquete cierra con un entregable verificable','Llevo un registro de decisiones','Los cambios se aprueban por escrito'],
+ ej:{inst:'Cada jornada de salud cierra con un acta, lista de asistentes y fotos. El comité aprueba por escrito cualquier cambio de sede.',neg:'Cada entrega de código pasa por revisión y prueba antes de unirse. Los pedidos de funciones nuevas se anotan para la siguiente versión.',soc:'Cada fin de semana hay una jornada de obra con lista de voluntarios. El avance se anota en un cuaderno compartido.'}},
+{id:'control',n:'Seguimiento y control',etapa:'Ejecución y control',
+ resumen:'Se hace en paralelo con la ejecución: comparar lo real con lo planificado y corregir a tiempo.',
+ pasos:['<strong>Elige pocos indicadores clave</strong> de avance, costo, calidad y satisfacción.','<strong>Mide con regularidad,</strong> semanal o quincenal, y compara contra el plan.','<strong>Analiza las desviaciones:</strong> qué pasó, por qué y qué efecto tendrá en la fecha y el costo finales.','<strong>Decide acciones correctivas</strong> y asigna responsable y fecha.','<strong>Informa con un semáforo:</strong> verde si va según plan, amarillo si hay riesgo, rojo si necesita decisión.'],
+ entrega:'Informe periódico de avance con indicadores, desviaciones y acciones correctivas.',
+ errores:['Medir demasiadas cosas y no usar ninguna.','Informar solo buenas noticias.'],
+ check:['Elegí indicadores clave de avance y costo','Mido con una frecuencia fija','Analizo desviaciones y decido correcciones','Informo con un semáforo claro'],
+ ej:{inst:'Indicador mensual: porcentaje de metas de asistencia cumplidas por barrio. Si un barrio queda debajo del 70% del plan, se refuerza la convocatoria.',neg:'Se revisan cada semana pedidos, tiempo de respuesta y costo por pedido. Si el costo sube más de 10%, se revisan proveedores.',soc:'Se registra la cantidad de voluntarios por jornada y el avance de obra contra el plan. Si baja la asistencia, se cambia el horario.'}},
+{id:'cierre',n:'Cierre y aprendizajes',etapa:'Cierre',
+ resumen:'Un proyecto no termina cuando se acaba el trabajo, sino cuando se entrega, se evalúa y se deja listo para continuar.',
+ pasos:['<strong>Entrega formalmente</strong> los resultados y consigue la aceptación por escrito del patrocinador o de los beneficiarios.','<strong>Evalúa los resultados</strong> contra los objetivos e indicadores del inicio.','<strong>Haz el cierre administrativo:</strong> contratos, pagos, rendición de cuentas y archivo de documentos.','<strong>Registra las lecciones aprendidas:</strong> qué funcionó, qué no y qué harías distinto.','<strong>Planifica la continuidad:</strong> quién mantendrá lo construido y con qué recursos.','<strong>Agradece y celebra</strong> con el equipo y los participantes.'],
+ entrega:'Informe final con resultados frente a objetivos, rendición de cuentas y lecciones aprendidas.',
+ errores:['Dar por terminado el proyecto sin medir si logró el cambio buscado.','No dejar a nadie a cargo del mantenimiento.'],
+ check:['Obtuve la aceptación formal de la entrega','Comparé resultados con objetivos','Cerré contratos y pagos','Escribí las lecciones aprendidas','Definí quién da continuidad'],
+ ej:{inst:'Informe final con resultados por barrio, rendición de gastos y una propuesta para que el área de salud incorpore las jornadas a su programa anual.',neg:'Evaluación a los 6 meses: pedidos mensuales logrados frente a la meta. Se decide si se amplía o se ajusta el modelo.',soc:'Entrega de la plaza en un acto público. El comité vecinal asume el mantenimiento con un calendario mensual de limpieza.'}}
+];
+
+var tipo = 'inst', marcas = {};
+var KEY = 'guia-proyectos-marcas';
+function leer(){ try { var v = localStorage.getItem(KEY); if(v) marcas = JSON.parse(v) || {}; } catch(e){} }
+function guardar(){ try { localStorage.setItem(KEY, JSON.stringify(marcas)); } catch(e){} }
+var TIPOS = {inst:'Institucional', neg:'Negocio', soc:'Social o comunitario'};
+
+function render(){
+  var html = '', chips = '', tabla = '';
+  FASES.forEach(function(f, i){
+    var n = i + 1, nn = (n < 10 ? '0' : '') + n;
+    chips += '<a href="#' + f.id + '" data-id="' + f.id + '"><b>' + nn + '</b>' + f.n + '</a>';
+    tabla += '<tr><td>' + nn + '</td><td>' + f.n + '</td><td>' + f.entrega + '</td></tr>';
+    html += '<section class="fase" id="' + f.id + '">'
+      + '<div class="fase-head"><div class="num">' + nn + '</div><div><div class="etapa">' + f.etapa + '</div><h2>' + f.n + '</h2></div><p class="resumen">' + f.resumen + '</p></div>'
+      + '<div class="card"><h3>Cómo hacerlo</h3><ol class="pasos">' + f.pasos.map(function(p){ return '<li>' + p + '</li>'; }).join('') + '</ol>'
+      + '<div class="entrega"><span class="tag">Entregable</span><span>' + f.entrega + '</span></div></div>'
+      + '<div class="ejemplo"><span class="tag">Ejemplo · ' + TIPOS[tipo] + '</span><p>' + f.ej[tipo] + '</p></div>'
+      + (f.extra === 'riesgo' ? riesgoHTML() : '')
+      + '<div class="dos"><div class="card"><h3>Lista de verificación</h3><ul class="checks">'
+      + f.check.map(function(c, j){ var k = f.id + '-' + j; return '<li><label><input type="checkbox" data-k="' + k + '"' + (marcas[k] ? ' checked' : '') + '><span>' + c + '</span></label></li>'; }).join('')
+      + '</ul></div><div class="card err"><h3>Errores comunes</h3><ul class="errores">' + f.errores.map(function(e){ return '<li>' + e + '</li>'; }).join('') + '</ul></div></div>'
+      + '</section>';
+  });
+  document.getElementById('fases').innerHTML = html;
+  document.getElementById('chips').innerHTML = chips;
+  document.getElementById('tabla').innerHTML = tabla;
+  progreso(); calcRiesgo();
+}
+
+function riesgoHTML(){
+  return '<div class="card"><h3>Calculadora de nivel de riesgo</h3><p>Elige la probabilidad y el impacto de un riesgo para ver su prioridad.</p>'
+    + '<div class="riesgo"><label for="prob">Probabilidad<select id="prob"><option value="1">Baja</option><option value="2" selected>Media</option><option value="3">Alta</option></select></label>'
+    + '<label for="imp">Impacto<select id="imp"><option value="1">Bajo</option><option value="2">Medio</option><option value="3" selected>Alto</option></select></label>'
+    + '<div class="res" id="res" aria-live="polite"></div></div>'
+    + '<p id="resTxt" style="font-size:15px;color:var(--muted)"></p></div>';
+}
+function calcRiesgo(){
+  var p = document.getElementById('prob'), i = document.getElementById('imp'), r = document.getElementById('res'), t = document.getElementById('resTxt');
+  if(!p) return;
+  var s = (+p.value) * (+i.value), c, l, d;
+  if(s <= 2){ c='bajo'; l='Riesgo bajo'; d='Acéptalo y vigílalo en las revisiones mensuales.'; }
+  else if(s <= 4){ c='medio'; l='Riesgo medio'; d='Define una acción para reducirlo y asigna un responsable.'; }
+  else { c='alto'; l='Riesgo alto'; d='Necesita un plan de respuesta ahora y seguimiento semanal.'; }
+  r.className = 'res ' + c; r.textContent = l + ' (' + s + '/9)'; t.textContent = d;
+}
+
+function progreso(){
+  var total = 0, hechas = 0;
+  FASES.forEach(function(f){ f.check.forEach(function(c, j){ total++; if(marcas[f.id + '-' + j]) hechas++; }); });
+  var pct = total ? Math.round(hechas * 100 / total) : 0;
+  document.getElementById('fill').style.width = pct + '%';
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('pb').setAttribute('aria-valuenow', pct);
+}
+
+document.addEventListener('change', function(e){
+  var t = e.target;
+  if(t.name === 'tipo'){ tipo = t.value; render(); return; }
+  if(t.dataset && t.dataset.k){ if(t.checked) marcas[t.dataset.k] = 1; else delete marcas[t.dataset.k]; guardar(); progreso(); return; }
+  if(t.id === 'prob' || t.id === 'imp') calcRiesgo();
+});
+document.addEventListener('click', function(e){
+  var a = e.target.closest ? e.target.closest('#chips a') : null;
+  if(a){ e.preventDefault(); var el = document.getElementById(a.dataset.id); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); return; }
+  if(e.target.id === 'reset'){ marcas = {}; guardar(); render(); }
+});
+
+function activo(){
+  var pos = 140, cur = null;
+  FASES.forEach(function(f){ var el = document.getElementById(f.id); if(el && el.getBoundingClientRect().top <= pos) cur = f.id; });
+  var links = document.querySelectorAll('#chips a');
+  links.forEach(function(l){
+    var on = l.dataset.id === cur;
+    l.classList.toggle('on', on);
+    if(on){ var box = l.parentNode; var x = l.offsetLeft - box.clientWidth / 2 + l.clientWidth / 2; box.scrollTo({left:x}); }
+  });
+}
+var tk = false;
+window.addEventListener('scroll', function(){ if(tk) return; tk = true; requestAnimationFrame(function(){ activo(); tk = false; }); }, {passive:true});
+
+leer(); render(); activo();
+</script>
+
+</body></html>
